@@ -33,11 +33,7 @@ class Customer implements \JsonSerializable, CustomerInterface
     {
         $props = get_object_vars($this);
 
-        if (empty($props['email'])) {
-            throw new ValidationException('Email is empty');
-        }
-
-        if (filter_var($props['email'], FILTER_VALIDATE_EMAIL) === false) {
+        if (!empty($props['email']) && (filter_var($props['email'], FILTER_VALIDATE_EMAIL) === false)) {
             throw new ValidationException('Email is not a valid email address');
         }
 
