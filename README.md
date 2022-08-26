@@ -86,6 +86,7 @@ Some of the key features are:
 ### Reports
 
 - [Request payment report](https://docs.paytrail.com/#/?id=payment-report-request)
+- [Request payment report by settlement id](https://docs.paytrail.com/#/?id=payment-report-request-by-settlement-id)
 
 ## Methods
 
@@ -110,4 +111,5 @@ List of `Client::class` methods
 | createMitPaymentCommit()            | Commit MiT authorization hold                        |
 | revertPaymentAuthorizationHold()    | Revert existing Mit or CiT authorization hold        |
 | getSettlements()                    | Request settlements                                  |
-| requestPaymentReport()              |  Request payment report                              |
+| requestPaymentReport()              | Request payment report                               |
+| requestPaymentReportBySettlementId()| Request payment report                               |
