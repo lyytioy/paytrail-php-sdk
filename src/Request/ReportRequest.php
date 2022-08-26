@@ -50,7 +50,7 @@ class ReportRequest implements \JsonSerializable
             throw new ValidationException('Limit exceeds maximum value of 50000');
         }
 
-        if ($props['reportFields'] && is_array($props['reportFields'])) {
+        if ($props['reportFields'] && !is_array($props['reportFields'])) {
             throw new ValidationException('ReportFields must be type of array');
         }
 
@@ -132,10 +132,10 @@ class ReportRequest implements \JsonSerializable
     /**
      * Set report fields.
      *
-     * @param string $reportFields
+     * @param array $reportFields
      * @return $this
      */
-    public function setReportFields(string $reportFields): self
+    public function setReportFields(array $reportFields): self
     {
         $this->reportFields = $reportFields;
         return $this;
