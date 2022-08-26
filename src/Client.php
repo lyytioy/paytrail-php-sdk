@@ -673,6 +673,22 @@ class Client extends PaytrailClient
     }
 
     /**
+     * Request payment report by settlement id.
+     * Report is sent to callbackUrl defined in ReportRequest.
+     *
+     * @param ReportRequest $reportRequest
+     * @param string $settlementId
+     * @return mixed
+     * @throws HmacException
+     * @throws ValidationException
+     */
+    public function requestPaymentReportBySettlementId(ReportRequest $reportRequest, string $settlementId) {
+        $this->validateRequestItem($reportRequest);
+        $uri = "/settlements/$settlementId/payments/report";
+        return $this->post($uri, $reportRequest);
+    }
+
+    /**
      * A proxy for the Signature class' static method
      * to be used via a client instance.
      *
