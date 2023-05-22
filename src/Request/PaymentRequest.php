@@ -16,5 +16,17 @@ namespace Paytrail\SDK\Request;
  */
 class PaymentRequest extends AbstractPaymentRequest
 {
+    protected ?string $orderId;
 
+    public function setOrderId(string $orderId): PaymentRequest
+    {
+        $this->orderId = $orderId;
+
+        return $this;
+    }
+
+    public function getOrderId()
+    {
+        return $this->orderId;
+    }
 }
