@@ -4,11 +4,10 @@ declare(strict_types=1);
 namespace Paytrail\SDK\Request;
 
 use Paytrail\SDK\Exception\ValidationException;
-use Paytrail\SDK\Util\ObjectPropertyConverter;
 
 class ReportRequest implements \JsonSerializable
 {
-    const PAYMENT_STATUSES = [
+    public const PAYMENT_STATUSES = [
         'default',
         'paid',
         'all',
@@ -23,8 +22,6 @@ class ReportRequest implements \JsonSerializable
     private $limit;
     private $reportFields;
     private $subMerchant;
-
-    use ObjectPropertyConverter;
 
     public function validate()
     {
@@ -50,8 +47,30 @@ class ReportRequest implements \JsonSerializable
             throw new ValidationException('Limit exceeds maximum value of 50000');
         }
 
+        if ($props['limit'] < 0) {
+            throw new ValidationException('Limit must have a minimum value of 0');
+        }
+
         if ($props['reportFields'] && !is_array($props['reportFields'])) {
             throw new ValidationException('ReportFields must be type of array');
+        }
+
+        if (!empty($props['startDate'])) {
+            if (!preg_match('/^\d{4}(-\d{2}){2}T\d{2}(:\d{2}){2}(\.\d+)?\+\d{2}:\d{2}/', $props['startDate'])) {
+                throw new ValidationException('startDate must be in ATOM, ISO8601 or RFC3339 format');
+            }
+        }
+
+        if (!empty($props['endDate'])) {
+            if (!preg_match('/^\d{4}(-\d{2}){2}T\d{2}(:\d{2}){2}(\.\d+)?\+\d{2}:\d{2}/', $props['endDate'])) {
+                throw new ValidationException('endDate must be in DateTimeInterface::ATOM, ISO8601 or RFC3339 format');
+            }
+        }
+
+        if (!empty($props['startDate']) && !empty($props['endDate'])) {
+            if (substr($props['startDate'], 0, 10) > substr($props['endDate'], 0, 10)) {
+                throw new ValidationException('startDate cannot be lower than endDate');
+            }
         }
 
         return true;
@@ -96,7 +115,7 @@ class ReportRequest implements \JsonSerializable
     /**
      * Set start date.
      *
-     * @param string $startDate
+     * @param string $startDate Start date as ISO format.
      * @return $this
      */
     public function setStartDate(string $startDate): self
@@ -108,7 +127,7 @@ class ReportRequest implements \JsonSerializable
     /**
      * Set end date.
      *
-     * @param string $endDate
+     * @param string $endDate End date as ISO format.
      * @return $this
      */
     public function setEndDate(string $endDate): self
@@ -118,7 +137,7 @@ class ReportRequest implements \JsonSerializable
     }
 
     /**
-     * Set limit of payments included.
+     * Set limit.
      *
      * @param int $limit
      * @return $this
@@ -132,7 +151,7 @@ class ReportRequest implements \JsonSerializable
     /**
      * Set report fields.
      *
-     * @param array $reportFields
+     * @param string[] $reportFields
      * @return $this
      */
     public function setReportFields(array $reportFields): self

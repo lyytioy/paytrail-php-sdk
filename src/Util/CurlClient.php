@@ -2,6 +2,7 @@
 
 namespace Paytrail\SDK\Util;
 
+use Paytrail\SDK\Exception\ClientException;
 use Paytrail\SDK\Response\CurlResponse;
 
 class CurlClient
@@ -27,7 +28,7 @@ class CurlClient
     public function request(string $method, string $uri, array $options)
     {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $this->baseUrl . $uri);
+        curl_setopt($curl, CURLOPT_URL, $this->buildUrl($uri, $options));
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HEADER, true);
@@ -47,12 +48,30 @@ class CurlClient
         $header_size = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
         $headers = rtrim(substr($response, 0, $header_size));
         $body = substr($response, $header_size);
-
-        $curlResponse = new CurlResponse($headers, $body, $statusCode);
-
         curl_close($curl);
 
-        return $curlResponse;
+        if ($statusCode == 400) {
+            throw new ClientException($body, $statusCode);
+        }
+
+        return new CurlResponse($headers, $body, $statusCode);
+    }
+
+    /**
+     * Build URL by prefixing endpoint with base URL and possible query parameters.
+     *
+     * @param string $uri
+     * @param array $options
+     * @return string
+     */
+    private function buildUrl(string $uri, array $options): string
+    {
+        $query = '';
+        if (isset($options['query'])) {
+            $uri .= '?' . http_build_query($options['query']);
+        }
+
+        return $this->baseUrl . $uri . $query;
     }
 
     /**
@@ -65,7 +84,7 @@ class CurlClient
         $headers = $options['headers'] ?? [];
         $result = [];
         foreach ($headers as $key => $value) {
-            $result[] = $key .': ' . $value;
+            $result[] = $key . ': ' . $value;
         }
 
         return $result;
@@ -82,6 +101,6 @@ class CurlClient
         if (!is_array($body)) {
             return $body;
         }
-        return http_build_query($body,'','&');
+        return http_build_query($body, '', '&');
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class EmailRefund
  */
@@ -6,9 +7,6 @@
 namespace Paytrail\SDK\Request;
 
 use Paytrail\SDK\Exception\ValidationException;
-use Paytrail\SDK\Model\CallbackUrl;
-use Paytrail\SDK\Model\RefundItem;
-use Paytrail\SDK\Util\JsonSerializable;
 
 /**
  * Class EmailRefund
@@ -19,7 +17,6 @@ use Paytrail\SDK\Util\JsonSerializable;
  */
 class EmailRefundRequest extends RefundRequest
 {
-
     /**
      * Email to which the refund message will be sent.
      *
@@ -28,9 +25,8 @@ class EmailRefundRequest extends RefundRequest
     protected $email;
 
     /**
-     * Validates with Respect\Validation library and throws an exception for invalid objects
+     * Validates properties and throws an exception for invalid values
      *
-     * @throws NestedValidationException Thrown when the validate() fails.
      * @throws ValidationException
      */
     public function validate()
@@ -53,7 +49,7 @@ class EmailRefundRequest extends RefundRequest
      *
      * @return string
      */
-    public function getEmail() : string
+    public function getEmail(): string
     {
         return $this->email;
     }
@@ -61,14 +57,13 @@ class EmailRefundRequest extends RefundRequest
     /**
      * Set the email.
      *
-     * @param string $email
+     * @param string|null $email
      *
      * @return EmailRefundRequest Return self to enable chaining.
      */
-    public function setEmail(?string $email) : EmailRefundRequest
+    public function setEmail(?string $email): RefundRequest
     {
         $this->email = $email;
-
         return $this;
     }
 }

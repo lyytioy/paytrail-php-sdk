@@ -1,9 +1,10 @@
 <?php
-declare(strict_types=1);
 
 /**
  * Class RevertCitPaymentAuthHoldResponse
  */
+
+declare(strict_types=1);
 
 namespace Paytrail\SDK\Response;
 
@@ -28,14 +29,13 @@ class RevertPaymentAuthHoldResponse implements ResponseInterface
     /**
      * Set the transaction id.
      *
-     * @param string $transactionId
+     * @param string|null $transactionId
      *
-     * @return CitPaymentResponse Return self to enable chaining.
+     * @return RevertPaymentAuthHoldResponse Return self to enable chaining.
      */
-    public function setTransactionId(string $transactionId): RevertPaymentAuthHoldResponse
+    public function setTransactionId(?string $transactionId): RevertPaymentAuthHoldResponse
     {
         $this->transactionId = $transactionId;
-
         return $this;
     }
 
@@ -44,7 +44,7 @@ class RevertPaymentAuthHoldResponse implements ResponseInterface
      *
      * @return string
      */
-    public function getTransactionId(): string
+    public function getTransactionId(): ?string
     {
         return $this->transactionId;
     }

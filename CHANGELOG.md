@@ -4,6 +4,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.2] - 2023-05-05
+### Fixed
+- Improved refundRequest Validation
+- Fix to allow zero amount items
+
+## [2.5.1] - 2023-04-19
+### Fixed
+- Fixed requestSettlements url parameters
+- Fixed item validation
+
+## [2.5.0] - 2023-04-11
+### Added
+- You can now request payment report by settlement ID
+- Added new improved way for requesting payment reports: requestSettlements()
+### Fixed
+- Fixed date validation on report requests
+- Code cleanup for request classes
+
+## [2.3.2] - 2023-02-22
+### Added
+- PHPStan (static analyser) added in workflow
+- Tests are now run also on PHP 8.2
+### Fixed
+- Code quality improvements and other fixes
+
+## [2.4.1] - 2023-01-11
+- Add missing transaction property to activateInvoice request
+- Use PSR-12 standard
+
+## [2.4.0] - 2022-11-15
+### Added
+- Add missing properties to RefundRequest
+- Add missing fields to PaymentResponse model
+- Add method for activate-invoice endpoint
+### Fixed
+- Fix function parameter types
+
+## [2.3.0] - 2022-09-05
+### Added
+- Payment report endpoint added
+- companyName added to Customer model
+### Fixed
+- Fixed cUrlClient query parameters
+
 ## [2.2.0] - 2022-06-15
 ### Added
 - Added PHPUnit test workflow

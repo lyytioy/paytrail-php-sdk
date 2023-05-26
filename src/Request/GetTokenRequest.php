@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class GetTokenRequest
  */
@@ -21,7 +22,7 @@ class GetTokenRequest implements \JsonSerializable
     protected $checkoutTokenizationId;
 
     /**
-     * Validates with Respect\Validation library and throws an exception for invalid objects
+     * Validates properties and throws an exception for invalid values
      *
      * @throws ValidationException
      */
