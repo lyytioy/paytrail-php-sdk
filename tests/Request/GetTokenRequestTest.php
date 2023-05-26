@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Request;
@@ -9,10 +10,15 @@ use PHPUnit\Framework\TestCase;
 
 class GetTokenRequestTest extends TestCase
 {
-    public function validationProvider()
+    public static function validationProvider()
     {
         return [
-            'checkout-tokenization-id is empty' => [['checkoutTokenizationId' => ''], 'checkout-tokenization-id is empty']
+            'checkout-tokenization-id is empty' => [
+                [
+                    'checkoutTokenizationId' => ''
+                ],
+                'checkout-tokenization-id is empty'
+            ]
         ];
     }
 

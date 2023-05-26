@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests;
@@ -6,7 +7,6 @@ namespace Tests;
 use Paytrail\SDK\Client;
 use Paytrail\SDK\Exception\ClientException;
 use Paytrail\SDK\Exception\HmacException;
-use Paytrail\SDK\Exception\RequestException;
 use Paytrail\SDK\Exception\ValidationException;
 use Paytrail\SDK\Model\Address;
 use Paytrail\SDK\Model\CallbackUrl;
@@ -19,56 +19,36 @@ use Paytrail\SDK\Request\GetTokenRequest;
 use Paytrail\SDK\Request\MitPaymentRequest;
 use Paytrail\SDK\Request\PaymentRequest;
 use Paytrail\SDK\Request\PaymentStatusRequest;
+use Paytrail\SDK\Request\ReportRequest;
 use Paytrail\SDK\Request\RevertPaymentAuthHoldRequest;
+use Paytrail\SDK\Request\SettlementRequest;
 use Paytrail\SDK\Request\ShopInShopPaymentRequest;
-use PHPUnit\Framework\TestCase;
 
-class ClientTest extends TestCase
+class ClientTest extends PaymentRequestTestCase
 {
-    const SECRET = 'SAIPPUAKAUPPIAS';
+    private $item;
+    private $item2;
+    private $shopInShopItem;
+    private $shopInShopItem2;
+    private $redirect;
+    private $callback;
+    private $customer;
+    private $address;
+    private $paymentRequest;
+    private $shopInShopPaymentRequest;
+    private $citPaymentRequest;
+    private $mitPaymentRequest;
 
-    const MERCHANT_ID = 375917;
-
-    const SHOP_IN_SHOP_SECRET = 'MONISAIPPUAKAUPPIAS';
-
-    const SHOP_IN_SHOP_AGGREGATE_MERCHANT_ID = 695861;
-
-    const SHOP_IN_SHOP_SUB_MERCHANT_ID = '695874';
-
-    const COF_PLUGIN_VERSION = 'phpunit-test';
-
-    protected $client;
-
-    protected $item;
-
-    protected $item2;
-
-    protected $redirect;
-
-    protected $callback;
-
-    protected $customer;
-
-    protected $address;
-
-    protected $paymentRequest;
-
-    protected $shopInShopPaymentRequest;
-
-    protected $citPaymentRequest;
-
-    protected $mitPaymentRequest;
 
     protected function setUp(): void
     {
-        $this->client = new Client(self::MERCHANT_ID, self::SECRET, self::COF_PLUGIN_VERSION);
+        parent::setUp();
 
         $this->item = (new Item())
-            ->setDeliveryDate('2020-12-12')
             ->setProductCode('pr1')
             ->setVatPercentage(24)
             ->setReference('itemReference123')
-            ->setStamp('itemStamp-' . rand(1, 999999))
+            ->setStamp('itemStamp-1' . rand(1, 999999))
             ->setUnits(1)
             ->setDescription('some description')
             ->setUnitPrice(100);
@@ -78,7 +58,7 @@ class ClientTest extends TestCase
             ->setProductCode('pr2')
             ->setVatPercentage(24)
             ->setReference('itemReference123')
-            ->setStamp('itemStamp-' . rand(1, 999999))
+            ->setStamp('itemStamp-2' . rand(1, 999999))
             ->setUnits(2)
             ->setDescription('some description2')
             ->setUnitPrice(200);
@@ -171,93 +151,41 @@ class ClientTest extends TestCase
 
     public function testPaymentRequest()
     {
-        $client = $this->client;
-        $paymentRequest = $this->paymentRequest;
+        $response = $this->createPayment($this->paymentRequest);
+        $this->assertPaymentResponseIsValid($response);
 
-        $transactionId = '';
-
-        if ($paymentRequest->validate()) {
-            try {
-                $response = $client->createPayment($paymentRequest);
-
-                $this->assertObjectHasAttribute('transactionId', $response);
-                $this->assertObjectHasAttribute('href', $response);
-                $this->assertObjectHasAttribute('providers', $response);
-                $this->assertIsArray($response->getProviders());
-
-                $transactionId = $response->getTransactionId();
-
-            } catch (HmacException $e) {
-                var_dump($e->getMessage());
-            } catch (ValidationException $e) {
-                var_dump($e->getMessage());
-            } catch (RequestException $e) {
-                var_dump(json_decode($e->getResponse()->getBody()));
-            }
-
-        } else {
-            echo 'PaymentRequest is not valid';
-        }
+        $transactionId = $response->getTransactionId();
 
         // Test payment status request with the transactionId we got from the PaymentRequest
         $psr = new PaymentStatusRequest();
         $psr->setTransactionId($transactionId);
 
-        $client = new Client(self::MERCHANT_ID, self::SECRET, self::COF_PLUGIN_VERSION);
-
         try {
-            $res = $client->getPaymentStatus($psr);
+            $res = $this->client->getPaymentStatus($psr);
             $this->assertEquals('new', $res->getStatus());
-            $this->assertEquals($res->getTransactionId(), $transactionId);
-        } catch (HmacException $e) {
-            var_dump('hmac error');
-        } catch (ValidationException $e) {
-            var_dump('validation error');
+            $this->assertEquals($transactionId, $res->getTransactionId());
+        } catch (HmacException | ValidationException $e) {
+            $this->fail($e->getMessage());
         }
     }
 
     public function testShopInShopPaymentRequest()
     {
-        $client = new Client(self::SHOP_IN_SHOP_AGGREGATE_MERCHANT_ID, self::SHOP_IN_SHOP_SECRET, self::COF_PLUGIN_VERSION);
-        $paymentRequest = $this->shopInShopPaymentRequest;
+        $response = $this->createShopInShopPayment($this->shopInShopPaymentRequest);
+        $this->assertPaymentResponseIsValid($response);
 
-        $transactionId = '';
-
-        if ($paymentRequest->validate()) {
-            try {
-                $response = $client->createShopInShopPayment($paymentRequest);
-
-                $this->assertObjectHasAttribute('transactionId', $response);
-                $this->assertObjectHasAttribute('href', $response);
-                $this->assertObjectHasAttribute('providers', $response);
-                $this->assertIsArray($response->getProviders());
-
-                $transactionId = $response->getTransactionId();
-
-            } catch (HmacException $e) {
-                var_dump($e->getMessage());
-            } catch (ValidationException $e) {
-                var_dump($e->getMessage());
-            } catch (RequestException $e) {
-                var_dump(json_decode($e->getResponse()->getBody()));
-            }
-
-        } else {
-            echo 'ShopInShopPaymentRequest is not valid';
-        }
+        $transactionId = $response->getTransactionId();
 
         // Test payment status request with the transactionId we got from the PaymentRequest
         $psr = new PaymentStatusRequest();
         $psr->setTransactionId($transactionId);
 
         try {
-            $res = $client->getPaymentStatus($psr);
+            $res = $this->sisClient->getPaymentStatus($psr);
             $this->assertEquals('new', $res->getStatus());
-            $this->assertEquals($res->getTransactionId(), $transactionId);
-        } catch (HmacException $e) {
-            var_dump('hmac error');
-        } catch (ValidationException $e) {
-            var_dump('validation error');
+            $this->assertEquals($transactionId, $res->getTransactionId());
+        } catch (HmacException | ValidationException $e) {
+            $this->fail($e->getMessage());
         }
     }
 
@@ -321,9 +249,9 @@ class ClientTest extends TestCase
             ]
         ];
 
-        $this->assertObjectHasAttribute('token', $response);
-        $this->assertObjectHasAttribute('card', $response);
-        $this->assertObjectHasAttribute('customer', $response);
+        $this->assertNotEmpty($response->getToken());
+        $this->assertNotEmpty($response->getCard());
+        $this->assertNotEmpty($response->getCustomer());
         $this->assertJsonStringEqualsJsonString(json_encode($expectedArray), json_encode($responseJsonData));
     }
 
@@ -338,7 +266,7 @@ class ClientTest extends TestCase
 
         $response = $client->createCitPaymentCharge($citPaymentRequest);
 
-        $this->assertObjectHasAttribute('transactionId', $response);
+        $this->assertNotEmpty($response->getTransactionId());
 
         $transactionId = $response->getTransactionId();
 
@@ -364,7 +292,7 @@ class ClientTest extends TestCase
 
         $response = $client->createMitPaymentCharge($mitPaymentRequest);
 
-        $this->assertObjectHasAttribute('transactionId', $response);
+        $this->assertNotEmpty($response->getTransactionId());
 
         $transactionId = $response->getTransactionId();
 
@@ -390,8 +318,8 @@ class ClientTest extends TestCase
 
         $response = $client->createCitPaymentCharge($citPaymentRequest);
 
-        $this->assertObjectHasAttribute('transactionId', $response);
-        $this->assertObjectHasAttribute('threeDSecureUrl', $response);
+        $this->assertNotEmpty($response->getTransactionId());
+        $this->assertNotEmpty($response->getThreeDSecureUrl());
     }
 
     public function testCitPaymentRequestAuthorizationHold()
@@ -405,7 +333,7 @@ class ClientTest extends TestCase
 
         $response = $client->createCitPaymentAuthorizationHold($citPaymentRequest);
 
-        $this->assertObjectHasAttribute('transactionId', $response);
+        $this->assertNotEmpty($response->getTransactionId());
 
         $transactionId = $response->getTransactionId();
 
@@ -431,7 +359,7 @@ class ClientTest extends TestCase
 
         $response = $client->createMitPaymentAuthorizationHold($mitPaymentRequest);
 
-        $this->assertObjectHasAttribute('transactionId', $response);
+        $this->assertNotEmpty($response->getTransactionId());
 
         $transactionId = $response->getTransactionId();
 
@@ -457,8 +385,8 @@ class ClientTest extends TestCase
 
         $response = $client->createCitPaymentAuthorizationHold($citPaymentRequest);
 
-        $this->assertObjectHasAttribute('transactionId', $response);
-        $this->assertObjectHasAttribute('threeDSecureUrl', $response);
+        $this->assertNotEmpty($response->getTransactionId());
+        $this->assertNotEmpty($response->getThreeDSecureUrl());
     }
 
     public function testCitPaymentRequestCommit()
@@ -472,7 +400,7 @@ class ClientTest extends TestCase
         $this->assertTrue($citPaymentRequest->validate());
 
         $response = $client->createCitPaymentCommit($citPaymentRequest, $transactionId);
-        $this->assertObjectHasAttribute('transactionId', $response);
+        $this->assertNotEmpty($response->getTransactionId());
     }
 
     public function testMitPaymentRequestCommit()
@@ -486,7 +414,7 @@ class ClientTest extends TestCase
         $this->assertTrue($mitPaymentRequest->validate());
 
         $response = $client->createMitPaymentCommit($mitPaymentRequest, $transactionId);
-        $this->assertObjectHasAttribute('transactionId', $response);
+        $this->assertNotEmpty($response->getTransactionId());
     }
 
     public function testRevertCitPaymentAuthorizationHold()
@@ -500,7 +428,7 @@ class ClientTest extends TestCase
 
         // Create new CitPaymentAuthorizationHold
         $response = $client->createCitPaymentAuthorizationHold($citPaymentRequest);
-        $this->assertObjectHasAttribute('transactionId', $response);
+        $this->assertNotEmpty($response->getTransactionId());
 
         $transactionId = $response->getTransactionId();
 
@@ -511,7 +439,7 @@ class ClientTest extends TestCase
         $this->assertTrue($revertCitPaymentAuthHoldRequest->validate());
 
         $revertResponse = $client->revertPaymentAuthorizationHold($revertCitPaymentAuthHoldRequest);
-        $this->assertObjectHasAttribute('transactionId', $revertResponse);
+        $this->assertNotEmpty($revertResponse->getTransactionId());
     }
 
     public function testRevertMitPaymentAuthorizationHold()
@@ -525,7 +453,7 @@ class ClientTest extends TestCase
 
         // Create new CitPaymentAuthorizationHold
         $response = $client->createMitPaymentAuthorizationHold($mitPaymentRequest);
-        $this->assertObjectHasAttribute('transactionId', $response);
+        $this->assertNotEmpty($response->getTransactionId());
 
         $transactionId = $response->getTransactionId();
 
@@ -536,7 +464,7 @@ class ClientTest extends TestCase
         $this->assertTrue($revertCitPaymentAuthHoldRequest->validate());
 
         $revertResponse = $client->revertPaymentAuthorizationHold($revertCitPaymentAuthHoldRequest);
-        $this->assertObjectHasAttribute('transactionId', $revertResponse);
+        $this->assertNotEmpty($revertResponse->getTransactionId());
     }
 
     public function testRevertCitPaymentAuthorizationHoldException()
@@ -557,9 +485,128 @@ class ClientTest extends TestCase
         }
     }
 
-    public function testGetSettlementsWithInvalidDateThrowsException()
+    public function testRequestSettlementsWithInvalidDateThrowsException()
+    {
+        $settlementRequest = (new SettlementRequest())->setStartDate('30.5.2022');
+        $this->expectException(ValidationException::class);
+        $this->client->requestSettlements($settlementRequest);
+    }
+
+    public function testRequestSettlementsReturnsValidResponse()
+    {
+        $settlementRequest = (new SettlementRequest());
+        $settlementResponse = $this->client->requestSettlements($settlementRequest);
+        $this->assertIsArray($settlementResponse->getSettlements());
+    }
+
+    public function testGetSettlementsReturnsValidResponse()
+    {
+        $settlementRequest = new SettlementRequest();
+        $settlementResponse = $this->client->requestSettlements($settlementRequest);
+        $this->assertIsArray($settlementResponse->getSettlements());
+    }
+
+    public function testGetGroupedPaymentProvidersAcceptsLanguageParameters()
+    {
+        $providers = $this->client->getGroupedPaymentProviders(100, 'EN');
+        $this->assertIsArray($providers);
+        $this->assertEquals('Mobile payment methods', $providers['groups'][0]['name']);
+    }
+
+    public function testRequestPaymentReportReturnsRequestId()
+    {
+        $reportRequest = (new ReportRequest())
+            ->setRequestType('json')
+            ->setCallbackUrl('https://nourl.test');
+        $response = $this->client->requestPaymentReport($reportRequest);
+
+        $this->assertNotNull($response->getRequestId());
+        $this->assertNotEmpty($response->getRequestId());
+    }
+
+    public function testRequestPaymentReportThrowsExceptionWhenRequestTypeIsEmpty()
     {
         $this->expectException(ValidationException::class);
-        $this->client->getSettlements('30.5.2022');
+        $reportRequest = (new ReportRequest())
+            ->setCallbackUrl('https://nourl.test');
+        $this->client->requestPaymentReport($reportRequest);
+    }
+
+    public function testRequestPaymentReportThrowsExceptionWhenCallbackUrlIsEmpty()
+    {
+        $this->expectException(ValidationException::class);
+        $reportRequest = (new ReportRequest())
+            ->setRequestType('json');
+        $this->client->requestPaymentReport($reportRequest);
+    }
+
+    public function testRequestPaymentReportThrowsExceptionWithInvalidPaymentStatus()
+    {
+        $this->expectException(ValidationException::class);
+        $reportRequest = (new ReportRequest())
+            ->setRequestType('json')
+            ->setCallbackUrl('https://nourl.test')
+            ->setPaymentStatus('Foobar');
+        $this->client->requestPaymentReport($reportRequest);
+    }
+
+    public function testRequestPaymentReportThrowsExceptionWhenLimitExceeds()
+    {
+        $this->expectException(ValidationException::class);
+        $reportRequest = (new ReportRequest())
+            ->setRequestType('json')
+            ->setCallbackUrl('https://nourl.test')
+            ->setLimit(99999999);
+        $this->client->requestPaymentReport($reportRequest);
+    }
+
+    public function testRequestPaymentReportThrowsExceptionWhenLimitIsNegative()
+    {
+        $this->expectException(ValidationException::class);
+        $reportRequest = (new ReportRequest())
+            ->setRequestType('json')
+            ->setCallbackUrl('https://nourl.test')
+            ->setLimit(-500);
+        $this->client->requestPaymentReport($reportRequest);
+    }
+
+    public function testRequestPaymentReportThrowsExceptionWhenUrlInvalid()
+    {
+        $this->expectException(ClientException::class);
+        $reportRequest = (new ReportRequest())
+            ->setRequestType('json')
+            ->setCallbackUrl('invalid-url');
+        $this->client->requestPaymentReport($reportRequest);
+    }
+
+    public function testRequestPaymentReportThrowsExceptionWhenEndDateIsLowerThanStartDate()
+    {
+        $this->expectException(ValidationException::class);
+        $reportRequest = (new ReportRequest())
+            ->setRequestType('json')
+            ->setCallbackUrl('https://nourl.test')
+            ->setStartDate('2023-01-20T12:00:00+02:00')
+            ->setEndDate('2023-01-01T23:59:50+02:00');
+        $this->client->requestPaymentReport($reportRequest);
+    }
+
+    public function testRequestPaymentReportThrowsExceptionWhenStartDateIsInWrongFormat()
+    {
+        $this->expectException(ValidationException::class);
+        $reportRequest = (new ReportRequest())
+            ->setRequestType('json')
+            ->setCallbackUrl('https://nourl.test')
+            ->setStartDate('1.1.2023');
+        $this->client->requestPaymentReport($reportRequest);
+    }
+
+    public function testRequestPaymentReportThrowsExceptionWhenEndDateIsInWrongFormat()
+    {
+        $this->expectException(ValidationException::class);
+        $reportRequest = (new ReportRequest())
+            ->setRequestType('json')
+            ->setCallbackUrl('https://nourl.test')
+            ->setEndDate('1.1.2023');
+        $this->client->requestPaymentReport($reportRequest);
     }
 }

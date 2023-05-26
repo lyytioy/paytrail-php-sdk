@@ -1,9 +1,10 @@
 <?php
-declare(strict_types=1);
 
 /**
  * Interface CallbackUrl
  */
+
+declare(strict_types=1);
 
 namespace Paytrail\SDK\Interfaces;
 
@@ -19,7 +20,7 @@ use Paytrail\SDK\Exception\ValidationException;
 interface CallbackUrlInterface
 {
     /**
-     * Validates with Respect\Validation library and throws an exception for invalid objects
+     * Validates properties and throws an exception for invalid values
      *
      * @throws ValidationException
      */

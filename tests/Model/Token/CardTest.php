@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Model\Token;
@@ -9,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class CardTest extends TestCase
 {
-    public function validationProvider()
+    public static function validationProvider()
     {
         return [
             'Type is empty' => [

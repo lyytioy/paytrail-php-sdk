@@ -1,9 +1,10 @@
 <?php
-declare(strict_types=1);
 
 /**
  * Class RefundItem
  */
+
+declare(strict_types=1);
 
 namespace Paytrail\SDK\Model;
 
@@ -19,11 +20,10 @@ use Paytrail\SDK\Util\JsonSerializable;
  */
 class RefundItem implements \JsonSerializable
 {
-
     use JsonSerializable;
 
     /**
-     * Validates with Respect\Validation library and throws an exception for invalid objects
+     * Validates properties and throws an exception for invalid values
      *
      * @throws ValidationException
      */
@@ -32,15 +32,13 @@ class RefundItem implements \JsonSerializable
         $props = get_object_vars($this);
 
         if (empty($props['amount'])) {
-            throw new ValidationException('Amount is empty');
+            throw new ValidationException('RefundItem amount is empty');
         }
-
+        if ($props['amount'] < 0) {
+            throw new ValidationException('RefundItem amount can\'t be a negative number');
+        }
         if (empty($props['stamp'])) {
-            throw new ValidationException('Stamp can not be empty');
-        }
-
-        if (!is_string($props['stamp'])) {
-            throw new ValidationException('Stamp is not a string');
+            throw new ValidationException('Stamp can\'t be empty');
         }
 
         return true;
@@ -65,7 +63,7 @@ class RefundItem implements \JsonSerializable
      *
      * @return int
      */
-    public function getAmount() : int
+    public function getAmount(): int
     {
         return $this->amount;
     }
@@ -76,7 +74,7 @@ class RefundItem implements \JsonSerializable
      * @param int $amount The amount.
      * @return RefundItem Return self to enable chaining.
      */
-    public function setAmount(? int $amount) : RefundItem
+    public function setAmount(?int $amount): RefundItem
     {
         $this->amount = $amount;
 
@@ -88,7 +86,7 @@ class RefundItem implements \JsonSerializable
      *
      * @return string
      */
-    public function getStamp() : string
+    public function getStamp(): string
     {
         return $this->stamp;
     }
@@ -99,7 +97,7 @@ class RefundItem implements \JsonSerializable
      * @param string $stamp The stamp.
      * @return RefundItem Return self to enable chaining.
      */
-    public function setStamp(?string $stamp) : RefundItem
+    public function setStamp(?string $stamp): RefundItem
     {
         $this->stamp = $stamp;
 
