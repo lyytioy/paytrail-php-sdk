@@ -39,7 +39,6 @@ use Paytrail\SDK\Exception\ValidationException;
 use Paytrail\SDK\Exception\RequestException;
 use Paytrail\SDK\Exception\ClientException;
 use Paytrail\SDK\Request\ReportBySettlementIdRequest;
-use Paytrail\SDK\Request\ReportRequest;
 
 /**
  * Class Client
@@ -789,40 +788,6 @@ class Client extends PaytrailClient
             },
             $transactionId
         );
-    }
-
-    /**
-     * Request payment report.
-     * Report is sent to callbackUrl defined in ReportRequest.
-     *
-     * @param ReportRequest $reportRequest
-     * @return mixed
-     * @throws HmacException
-     * @throws ValidationException
-     */
-    public function requestPaymentReport(ReportRequest $reportRequest) {
-        $this->validateRequestItem($reportRequest);
-        $uri = '/payments/report';
-        return $this->post($uri, $reportRequest);
-    }
-
-    /**
-     * Request payment report by settlement id.
-     * Report is sent to callbackUrl defined in ReportRequest.
-     *
-     * @param ReportRequest $reportBySettlementIdRequest
-     * @param string $settlementId
-     * @return mixed
-     * @throws HmacException
-     * @throws ValidationException
-     */
-    public function requestPaymentReportBySettlementId(
-        ReportBySettlementIdRequest $reportBySettlementIdRequest,
-        string $settlementId
-    ) {
-        $this->validateRequestItem($reportBySettlementIdRequest);
-        $uri = "/settlements/$settlementId/payments/report";
-        return $this->post($uri, $reportBySettlementIdRequest);
     }
 
     /**
