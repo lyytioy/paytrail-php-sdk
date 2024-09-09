@@ -38,6 +38,7 @@ use Paytrail\SDK\Exception\HmacException;
 use Paytrail\SDK\Exception\ValidationException;
 use Paytrail\SDK\Exception\RequestException;
 use Paytrail\SDK\Exception\ClientException;
+use Paytrail\SDK\Response\AddCardPaymentResponse;
 
 /**
  * Class Client
@@ -218,7 +219,8 @@ class Client extends PaytrailClient
                     ->setTerms($decoded->terms ?? null)
                     ->setGroups($decoded->groups ?? [])
                     ->setReference($decoded->reference ?? null)
-                    ->setProviders($decoded->providers ?? []);
+                    ->setProviders($decoded->providers ?? [])
+                    ->setCustomProviders((array)($decoded->customProviders ?? []));
             }
         );
 
@@ -233,6 +235,7 @@ class Client extends PaytrailClient
       * @return PaymentResponse
       * @throws HmacException        Thrown if HMAC calculation fails for responses.
       * @throws ValidationException  Thrown if payment validation fails.
+      * @throws ClientException      Thrown if API call fails.
       */
     public function createShopInShopPayment(ShopInShopPaymentRequest $payment): PaymentResponse
     {
@@ -260,6 +263,23 @@ class Client extends PaytrailClient
             }
         );
         return $paymentResponse;
+    }
+
+    public function createPaymentAndAddCard(PaymentRequest $paymentRequest): AddCardPaymentResponse
+    {
+        $this->validateRequestItem($paymentRequest);
+
+        $uri = '/tokenization/pay-and-add-card';
+
+        return $this->post(
+            $uri,
+            $paymentRequest,
+            function ($decoded) {
+                return (new AddCardPaymentResponse())
+                    ->setTransactionId($decoded->transactionId ?? null)
+                    ->setRedirectUrl($decoded->redirectUrl ?? null);
+            }
+        );
     }
 
     /**
