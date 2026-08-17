@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.1] - 2026-07-01
+### Changed
+- Casted checkout-account header to string for Guzzle 7.11 deprecation
+- Network token image_url to be nullable
+
+## [2.8.0] - 2026-03-04
+### Added
+- Support for Klarna invoice cancellation
+
+## [2.7.6] - 2025-12-10
+### Added
+- Support for PHP 8.5
+### Changed
+- Token customer class networkAddress and countryCode to be nullable
+
+## [2.7.5] - 2025-06-13
+### Added
+- Validation for empty item VAT percentage
+- Network token to getTokenResponse
+
 ## [2.7.4] - 2025-02-03
 ### Added
 - Support for PHP 8.4
